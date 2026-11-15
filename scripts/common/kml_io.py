@@ -36,15 +36,20 @@ def valid_labels() -> set[str]:
 
 def write_kml(df: pd.DataFrame, out: Path, title: str) -> None:
     """df 需含 point_id, lon, lat, label；可选 desc。"""
+    def style_id(label: str) -> str:
+        # 未知或带 ? 的预填标签（如 ?evergreen）统一用"待定"样式
+        return "st_" + (label if label in STYLE_COLORS and label != "?" else "unk")
+
     styles = "".join(
-        f'<Style id="{k.strip("?") or "unk"}"><IconStyle><color>{c}</color><scale>0.8</scale>'
+        f'<Style id="{style_id(k)}"><IconStyle><color>{c}</color><scale>0.8</scale>'
         f'<Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon>'
         f"</IconStyle></Style>"
         for k, c in STYLE_COLORS.items()
     )
     marks = []
     for r in df.itertuples(index=False):
-        sid = r.label.strip("?") or "unk"
+        sid = style_id(r.label)
+        assert f'id="{sid}"' in styles, f"样式缺失：{sid}"
         desc = escape(str(getattr(r, "desc", "") or ""))
         marks.append(
             f"<Placemark><name>{r.point_id}|{r.label}|</name><description>{desc}</description>"
