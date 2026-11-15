@@ -1,0 +1,3 @@
+# 标注类别代码（与 docs/00 第 2 节一致）
+labels: [tea, evergreen_forest, bamboo, deciduous_forest, orchard, cropland, shrub_grass, built, water, ancient_tea, shaded_tea, other]
+main_classes: [tea, evergreen_forest, bamboo, deciduous_forest, orchard, cropland]   # S1 门槛：每茶区每类 >= 50
