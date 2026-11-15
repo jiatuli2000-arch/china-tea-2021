@@ -80,8 +80,20 @@ def parse_kml(path: Path) -> pd.DataFrame:
             "confidence": parts[2], "imagery_date": m.group(1) if m else "",
             "note": desc, "name_raw": name,
         })
-    df = pd.DataFrame(rows)
+    return add_problems(pd.DataFrame(rows))
+
+
+def parse_csv(path: Path) -> pd.DataFrame:
+    """读取时序辅助网页导出的标注 CSV。"""
+    df = pd.read_csv(path, dtype=str, keep_default_na=False)
+    df["lon"], df["lat"] = df.lon.astype(float), df.lat.astype(float)
+    return add_problems(df)
+
+
+def add_problems(df: pd.DataFrame) -> pd.DataFrame:
+    """逐点检查：标签合法、置信度 1–3、有影像日期、有坐标。"""
     labels = valid_labels()
+    df["confidence"] = df.confidence.astype(str).str.strip()
 
     def problem(r) -> str:
         p = []
