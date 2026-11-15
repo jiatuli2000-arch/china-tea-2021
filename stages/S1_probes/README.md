@@ -8,14 +8,8 @@
 
 ## 操作步骤
 
-```bash
-conda activate tea2021
-python stages/S1_probes/make_kit_<area>.py          # 生成打点包 data/interim/S1/<area>_kit_v1.kml
-# → Google Earth 网页版标注，导出 KML（流程见 docs/04）
-python stages/S1_probes/ingest.py 导出.kml --zone jiangnan --area huangshan --province 安徽 --annotator <你>
-python stages/S1_probes/check.py                     # 验收
-```
+见 `docs/04_打点工作流.md`。
 
 | 代表区 | 打点包 | 状态 |
 |---|---|---|
-| 黄山（江南） | `huangshan_kit_v1.kml`：旧判读点 241 个 + ESA 2021 分层补充点 145 个（树木 90、农田 40、草地 15；灌丛类在黄山没有抽到像元） | 待标注 |
+| 黄山（江南） | `huangshan_kit_v1`：旧判读点 241 个 + ESA 2021 分层补充点 145 个 | ✅ 已入库 `data/raw/probes/jiangnan__huangshan.csv`（2026-11-15，386 点）：非茶常绿林 163、茶树 145、混合像元 37、耕地 29、落叶林 10、建筑 2。**落叶林、耕地还不到 50 个** |

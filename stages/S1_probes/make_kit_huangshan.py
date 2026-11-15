@@ -1,12 +1,10 @@
 """S1 · 黄山打点包 v1：核验 241 个旧判读点 + 补充非茶候选点。
 
-输出：data/interim/S1/huangshan_kit_v1.kml（导入 Google Earth 网页版）
-      data/interim/S1/huangshan_kit_v1.csv（同内容表格，便于追溯）
+输出：data/interim/S1/huangshan_kit_v1.csv（之后运行 extract_timeseries.py 与 build_viewer.py 生成检查网页）
 """
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
 
 import ee
@@ -14,8 +12,6 @@ import pandas as pd
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "scripts" / "common"))
-from kml_io import write_kml  # noqa: E402
 
 CFG = yaml.safe_load((ROOT / "config" / "project.yaml").read_text(encoding="utf-8"))
 YEAR = CFG["year"]
@@ -38,7 +34,7 @@ def legacy_points() -> pd.DataFrame:
         "label": d.class_label.map(LEGACY_MAP).fillna("?"),
         "source": "legacy_huangshan2021",
     })
-    out["desc"] = "旧标签=" + d.class_label + "；旧备注=" + d.notes.fillna("") + "；请切到2021前后影像核验，写 img=YYYY-MM"
+    out["desc"] = "旧标签=" + d.class_label + "；旧备注=" + d.notes.fillna("") + "；"
     return out
 
 
@@ -58,7 +54,7 @@ def esa_candidates() -> pd.DataFrame:
         c = f["properties"]["esa"]
         rows.append({"point_id": f"HS21N_{i:04d}", "lon": lon, "lat": lat, "label": "?",
                      "source": f"esa{YEAR}_class{c}",
-                     "desc": f"新候选点（ESA {YEAR}={ESA_NAME[c]}，仅供参考）；写 img=YYYY-MM"})
+                     "desc": f"新候选点（ESA {YEAR}={ESA_NAME[c]}，仅供参考）"})
     return pd.DataFrame(rows)
 
 
@@ -68,8 +64,7 @@ def main() -> None:
     assert df.point_id.is_unique
     OUT.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(OUT.with_suffix(".csv"), index=False, encoding="utf-8-sig")
-    write_kml(df, OUT.with_suffix(".kml"), f"黄山打点包 v1（{YEAR}）")
-    print(f"{len(df)} 点 → {OUT.with_suffix('.kml')}")
+    print(f"{len(df)} 点 → {OUT.with_suffix('.csv')}")
     print(df.source.value_counts().to_string())
     print(df.label.value_counts().to_string())
 

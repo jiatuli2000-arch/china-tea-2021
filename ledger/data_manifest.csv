@@ -5,3 +5,4 @@ data/raw/boundaries/tea_zones/江北茶区.shp,四大茶区边界（省级整省
 data/raw/boundaries/tea_zones/江南茶区.shp,四大茶区边界（省级整省归并，CGCS2000）,~/茶树制图文件夹/中国地图/,出处见 docs/02,2026-11-15,4b97a858646e47f75b5afc85e6190cb79ab1948dd010e559557c694921938695
 data/raw/legacy/huangshan2021_manual_points.csv,黄山2021人工判读点241,~/Desktop/黄山2021_人工判读样本点/,旧项目；2021未核验,2026-11-15,472b8b35437f5fe736ce19f3ce6573e230c97802c753596db8ab0e6b52964502
 data/raw/probes/exports/huangshan_kit_v1_labels_20261115.csv,黄山打点包v1网页标注原始导出（386点；other=混合像元）,~/Downloads/huangshan_kit_v1_labels_2026-11-151306.csv,标注者本人 2026-11-15；imagery_date 全空,2026-11-15,40b9b3f722acdf517a40d3ba9a5886ede9eaa30a1b090903c268d2fd8973381c
+data/raw/probes/jiangnan__huangshan.csv,江南·黄山探针点（入库版）,data/raw/probes/exports/huangshan_kit_v1_labels_20261115.csv,ingest.py --relabel other=mixed；判读=当前影像+2021 S2时序,2026-11-15,d969f280ac4181b4021db93e8150be8184bf3a7579c515865209a10c5a326e5c
