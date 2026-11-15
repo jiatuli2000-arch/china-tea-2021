@@ -1,1 +1,5 @@
 path,description,source,provenance_note,date_added,sha256
+data/raw/boundaries/tea_zones/西南茶区.shp,四大茶区边界（省级整省归并，CGCS2000）,~/茶树制图文件夹/中国地图/,出处见 docs/02,2026-11-15,5dda03ece4978889e9d635b453da43a50b29a7884b6dffa86371678206d8f8db
+data/raw/boundaries/tea_zones/华南茶区.shp,四大茶区边界（省级整省归并，CGCS2000）,~/茶树制图文件夹/中国地图/,出处见 docs/02,2026-11-15,df2a2c4aa1fdb107c9b6d624a40d0d2c747e2cc7d4cbc2b9490bdd297e10441d
+data/raw/boundaries/tea_zones/江北茶区.shp,四大茶区边界（省级整省归并，CGCS2000）,~/茶树制图文件夹/中国地图/,出处见 docs/02,2026-11-15,21b9e3485d10ff7e1717ac0334df8293b96e45198041dbf2ab0d36bbf89c6156
+data/raw/boundaries/tea_zones/江南茶区.shp,四大茶区边界（省级整省归并，CGCS2000）,~/茶树制图文件夹/中国地图/,出处见 docs/02,2026-11-15,4b97a858646e47f75b5afc85e6190cb79ab1948dd010e559557c694921938695
