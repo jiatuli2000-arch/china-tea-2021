@@ -252,7 +252,7 @@ function show(i){
   const p = TS.points[k.point_id]||{s2:[],s1:[]};
   const acc=css("--accent"), ref=css("--ref"), mut=css("--muted");
   c2.data.datasets=[
-    {label:"旧标签茶园中位数（参考，未核验）",data:REF2,showLine:true,pointRadius:0,borderColor:ref,backgroundColor:ref,borderWidth:6},
+    ...(REF2.length?[{label:"旧标签茶园中位数（参考，未核验）",data:REF2,showLine:true,pointRadius:0,borderColor:ref,backgroundColor:ref,borderWidth:6}]:[]),
     {label:"本点观测",data:p.s2.map(o=>({x:o[0],y:o[1]})),pointRadius:3,backgroundColor:mut},
     {label:"本点 16 天中位数",data:smooth(p.s2),showLine:true,pointRadius:0,borderColor:acc,borderWidth:2},
   ];
@@ -260,7 +260,7 @@ function show(i){
   c2.update();
   const A=p.s1.filter(o=>o[2]==="A"), D=p.s1.filter(o=>o[2]==="D");
   c1.data.datasets=[
-    {label:"旧标签茶园中位数（参考）",data:REF1,showLine:true,pointRadius:0,borderColor:ref,borderWidth:6},
+    ...(REF1.length?[{label:"旧标签茶园中位数（参考）",data:REF1,showLine:true,pointRadius:0,borderColor:ref,borderWidth:6}]:[]),
     {label:`升轨 (${A.length})`,data:A.map(o=>({x:o[0],y:o[1]})),pointRadius:2.5,backgroundColor:"#1e88e5"},
     {label:`降轨 (${D.length})`,data:D.map(o=>({x:o[0],y:o[1]})),pointRadius:2.5,backgroundColor:"#fb8c00"},
     {label:"16 天中位数",data:smooth(p.s1),showLine:true,pointRadius:0,borderColor:acc,borderWidth:2},
