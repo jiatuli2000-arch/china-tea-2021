@@ -1,0 +1,23 @@
+# data never goes to git (see ledger/data_manifest.csv)
+data/**
+!data/README.md
+*.tif
+*.tiff
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.kmz
+*.joblib
+*.pkl
+_tmp*/
+# python / os
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+.env
+# GEE credentials
+*.json.key
+credentials*

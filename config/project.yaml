@@ -1,0 +1,25 @@
+# 单一配置源：所有脚本只从这里读取参数，禁止在脚本中硬编码。
+project: china-tea-2021
+year: 2021                     # 唯一目标年份
+target_class: terrace_tea      # 常规台地茶；古茶、林下茶为非目标
+
+crs:
+  storage: EPSG:4326           # 栅格存储
+  area: ESRI:102025            # 面积计算必须用等面积投影 (Asia North Albers Equal Area Conic)
+
+resolution_m: 10
+
+tea_zones:                     # 中国四大茶区（边界数据在 S0 定稿）
+  - jiangbei   # 江北
+  - jiangnan   # 江南
+  - huanan     # 华南
+  - xinan      # 西南
+
+gee:
+  project: null                # 在本地 .env 中设置，勿提交
+
+accuracy_targets:              # 详见 docs/01_精度目标与验收门槛.md
+  tea_f1_min: 0.85
+  tea_ua_min: 0.85
+  tea_pa_min: 0.80
+  sample_purity_min: 0.95

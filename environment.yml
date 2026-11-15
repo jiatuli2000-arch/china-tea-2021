@@ -1,0 +1,14 @@
+name: tea2021
+channels: [conda-forge]
+dependencies:
+  - python=3.12
+  - earthengine-api
+  - geemap
+  - geopandas
+  - rasterio
+  - numpy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - pyyaml
+  - jupyterlab
