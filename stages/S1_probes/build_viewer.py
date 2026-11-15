@@ -21,6 +21,7 @@ def main(kit: str) -> None:
     k = pd.read_csv(d / f"{kit}.csv")[["point_id", "lon", "lat", "label", "source", "desc"]].fillna("")
     ts = json.loads((d / f"{kit}_ts.json").read_text(encoding="utf-8"))
     labels = yaml.safe_load((ROOT / "config/labels.yaml").read_text(encoding="utf-8"))["labels"]
+    labels = [{"code": c, **v} for c, v in labels.items()]
     html = (ROOT / "scripts/common/ts_viewer_template.html").read_text(encoding="utf-8")
     html = (html.replace("__TITLE__", f"{kit} · 时序辅助")
                 .replace("__KIT__", json.dumps(k.to_dict("records"), ensure_ascii=False))

@@ -26,6 +26,8 @@ def main() -> None:
     ap.add_argument("--area", required=True)
     ap.add_argument("--province", required=True)
     ap.add_argument("--annotator", required=True)
+    ap.add_argument("--relabel", action="append", default=[], metavar="旧=新",
+                    help="入库时改标签代码，如 other=mixed（会写进 note 留痕）")
     a = ap.parse_args()
 
     out = ROOT / f"data/raw/probes/{a.zone}__{a.area}.csv"
@@ -33,6 +35,14 @@ def main() -> None:
         sys.exit(f"已存在 {out}，不覆盖。若是新一轮标注请换 --area（如 huangshan_r2）。")
 
     df = parse_csv(a.src) if a.src.suffix.lower() == ".csv" else parse_kml(a.src)
+    for rule in a.relabel:
+        old, new = rule.split("=")
+        hit = df.label == old
+        df.loc[hit, "note"] = (df.loc[hit, "note"].fillna("") + f" [入库改标签 {old}→{new}]").str.strip()
+        df.loc[hit, "label"] = new
+        print(f"改标签 {old}→{new}：{int(hit.sum())} 点")
+    from kml_io import add_problems  # noqa: E402
+    df = add_problems(df.drop(columns="problem"))
     bad = df[df.problem != ""]
     ok = df[df.problem == ""].copy()
     ok["imagery_source"] = "Google Earth Web"

@@ -1,3 +1,20 @@
-# 标注类别代码（与 docs/00 第 2 节一致）
-labels: [tea, evergreen_forest, bamboo, deciduous_forest, orchard, cropland, shrub_grass, built, water, ancient_tea, shaded_tea, other]
-main_classes: [tea, evergreen_forest, bamboo, deciduous_forest, orchard, cropland]   # S1 门槛：每茶区每类 >= 50
+# 标注类别（与 docs/00 第 2 节一致）。tier: common=常用（界面第一排），more=其他
+labels:
+  tea:              {name: 茶树,        key: t, tier: common}
+  evergreen_forest: {name: 非茶常绿林,  key: e, tier: common}
+  deciduous_forest: {name: 落叶林,      key: d, tier: common}
+  mixed_forest:     {name: 常绿落叶混交林, key: m, tier: common}
+  cropland:         {name: 耕地,        key: c, tier: common}
+  mixed:            {name: 混合像元（不可用）, key: x, tier: common}
+  bamboo:           {name: 竹林,        key: b, tier: more}
+  orchard:          {name: 果园,        key: o, tier: more}
+  shrub_grass:      {name: 灌丛草地,    key: s, tier: more}
+  built:            {name: 建筑,        key: u, tier: more}
+  water:            {name: 水体,        key: w, tier: more}
+  ancient_tea:      {name: 古茶,        key: a, tier: more}
+  shaded_tea:       {name: 林下茶,      key: h, tier: more}
+  other:            {name: 其他,        key: z, tier: more}
+# 不进入训练与 TI 分析的类别（仍入库，用于统计混合像元比例）
+unusable: [mixed, other, ancient_tea, shaded_tea]
+# S1 门槛：每茶区每类 >= 50 个置信度 >= 2 的点
+main_classes: [tea, evergreen_forest, deciduous_forest, cropland]

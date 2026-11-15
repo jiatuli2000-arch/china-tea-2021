@@ -27,13 +27,13 @@ def main() -> int:
     fails = []
     if not df.point_id.is_unique:
         fails.append(f"point_id 重复 {df.point_id.duplicated().sum()} 个")
-    bad = ~df.label.isin(LAB["labels"])
+    bad = ~df.label.isin(list(LAB["labels"]))
     if bad.any():
         fails.append(f"非法标签 {bad.sum()} 个")
     if df[["lon", "lat", "imagery_date"]].isna().any().any():
         fails.append("存在缺失坐标或影像日期")
 
-    good = df[df.confidence >= 2]
+    good = df[(df.confidence >= 2) & ~df.label.isin(LAB["unusable"])]
     tab = (good[good.label.isin(LAB["main_classes"])]
            .pivot_table(index="label", columns="zone", values="point_id", aggfunc="count")
            .reindex(index=LAB["main_classes"], columns=ZONES).fillna(0).astype(int))

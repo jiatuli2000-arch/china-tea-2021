@@ -24,6 +24,7 @@ def main(kit: str) -> None:
     chips = json.loads((d / f"{kit}_chips.json").read_text(encoding="utf-8"))
     chips = {p: v for p, v in chips.items() if "error" not in v}
     labels = yaml.safe_load((ROOT / "config/labels.yaml").read_text(encoding="utf-8"))["labels"]
+    labels = [{"code": c, **v} for c, v in labels.items()]
     area = kit.split("_")[0]
     title = f"{NAMES.get(area, area)}茶园探针标注"
     html = (ROOT / "scripts/common/shared_labeler_template.html").read_text(encoding="utf-8")
