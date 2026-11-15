@@ -62,7 +62,8 @@ def main() -> None:
     pct = ndvi_col(f"{YEAR}-01-01", f"{YEAR + 1}-01-01", region).reduce(ee.Reducer.percentile([10, 90]))
     amp = pct.select("ndvi_p90").subtract(pct.select("ndvi_p10")).rename("amp")
 
-    dem = ee.ImageCollection("COPERNICUS/DEM/GLO30").select("DEM").mosaic().setDefaultProjection("EPSG:4326", None, 30)
+    demc = ee.ImageCollection("COPERNICUS/DEM/GLO30").select("DEM")
+    dem = demc.mosaic().setDefaultProjection(demc.first().projection())
     terr = ee.Terrain.products(dem).select(["slope", "aspect"])
     stack = ee.Image.cat([esa.rename("esa"), winter, summer, amp, terr])
 
