@@ -1,0 +1,329 @@
+<title>__TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 布局：左侧点列表，右侧单点工作台（标签 → 2021 影像小图 → 时序曲线） */
+:root{
+  --bg:#f4f6f1; --panel:#ffffff; --fg:#1c231b; --muted:#5f6b5d; --line:#dde3d8;
+  --accent:#2f6b3a; --accent-fg:#ffffff; --sel:#e4eedf; --ref:rgba(47,107,58,.16);
+  --warn:#a14d00; --pin:#ffd400;
+  --font-ui:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121511; --panel:#1b1f19; --fg:#e8ede4; --muted:#9aa595; --line:#2e352b;
+  --accent:#7cc47f; --accent-fg:#0f1a0f; --sel:#24321f; --ref:rgba(124,196,127,.2); --warn:#f0a35c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121511; --panel:#1b1f19; --fg:#e8ede4; --muted:#9aa595; --line:#2e352b;
+  --accent:#7cc47f; --accent-fg:#0f1a0f; --sel:#24321f; --ref:rgba(124,196,127,.2); --warn:#f0a35c; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45;
+  display:grid;grid-template-columns:270px minmax(0,1fr);min-height:0}
+button,input,select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 9px}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,li:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted);font-size:12.5px}
+kbd{font-family:var(--font-mono);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
+
+aside{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;
+  padding-left:env(safe-area-inset-left,0px)}
+aside header{padding:14px 14px 10px;display:grid;gap:7px;border-bottom:1px solid var(--line)}
+aside h1{font-size:15px;margin:0;text-wrap:balance}
+#who{font-size:12.5px}
+#prog{font-size:12.5px;font-variant-numeric:tabular-nums}
+.bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+#list{list-style:none;margin:0;padding:0;overflow:auto;flex:1}
+#list li{padding:6px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;
+  align-items:center;cursor:pointer;font-size:12.5px}
+#list li.on{background:var(--sel)}
+#list li .id{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#list li .lab{color:var(--muted)}
+#list li .lab.mine{color:var(--accent);font-weight:600}
+.n{font-size:11px;border:1px solid var(--line);border-radius:9px;padding:0 6px;color:var(--muted)}
+.n.split{border-color:var(--warn);color:var(--warn)}
+
+main{overflow:auto;min-width:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:14px;display:grid;gap:14px;align-content:start}
+.head{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline}
+.pid{font-size:18px;font-weight:650}
+#desc{max-width:70ch}
+#status{font-size:12.5px;min-height:1.2em}
+#status.err{color:var(--warn)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;gap:10px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chips button.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.chips button .k{font-family:var(--font-mono);font-size:11px;opacity:.7;margin-left:3px}
+#img{width:100px}#note{flex:1;min-width:140px}
+#others{display:grid;gap:3px;font-size:12.5px}
+.views{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px}
+.imgs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+figure{margin:0;display:grid;gap:4px}
+.chip{position:relative;aspect-ratio:1;max-width:100%;background:var(--line);border-radius:6px;overflow:hidden}
+.chip img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;display:block}
+.chip::after{content:"";position:absolute;left:50%;top:50%;width:calc(100%/80);height:calc(100%/80);transform:translate(-50%,-50%);
+  outline:2px solid var(--pin);outline-offset:0}
+figcaption{font-size:12px;color:var(--muted)}
+.chartbox{position:relative;height:190px}
+h2{font-size:12.5px;margin:0;color:var(--muted);font-weight:600;letter-spacing:.02em}
+a{color:var(--accent)}
+
+@media (max-width:760px){
+  body{grid-template-columns:1fr;grid-template-rows:38vh minmax(0,1fr)}
+  aside{border-right:0;border-bottom:1px solid var(--line);padding-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<aside>
+  <header>
+    <h1>__TITLE__</h1>
+    <div id="who" class="muted">正在连接标注数据库…</div>
+    <input id="q" placeholder="搜索点号" aria-label="搜索点号">
+    <select id="f" aria-label="筛选">
+      <option value="">全部点</option>
+      <option value="todo">我还没标的</option>
+      <option value="done">我已标的</option>
+      <option value="split">多人标注不一致</option>
+    </select>
+    <div id="prog" class="muted"></div>
+    <div class="bar"><i id="progbar"></i></div>
+    <div class="row"><button id="exp" hidden>导出我的标注</button><button id="expall" hidden>导出全部人的标注</button></div>
+  </header>
+  <ul id="list"></ul>
+</aside>
+
+<main>
+  <div class="head">
+    <span class="pid mono" id="pid"></span>
+    <span class="muted" id="info"></span>
+    <a id="ge" target="_blank" rel="noopener">在 Google Earth 网页版看历史影像 ↗</a>
+  </div>
+  <div class="muted" id="desc"></div>
+
+  <section class="panel" aria-label="标注">
+    <div class="row"><span class="muted">标签</span><div class="row chips" id="labs"></div></div>
+    <div class="row"><span class="muted">置信度</span><div class="row chips" id="conf"></div>
+      <span class="muted" style="margin-left:10px">核对影像日期</span><input id="img" class="mono" placeholder="2021-03">
+      <input id="note" placeholder="备注（可选）"><button id="clear">清除我的标签</button></div>
+    <div class="muted">快捷键：字母选标签，<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 置信度，<kbd>Enter</kbd> 下一个，<kbd>↑</kbd><kbd>↓</kbd> 切换</div>
+    <div id="status" role="status"></div>
+    <label class="muted"><input type="checkbox" id="showothers"> 显示其他人对这个点的标签（默认隐藏，避免互相影响）</label>
+    <div id="others" hidden></div>
+  </section>
+
+  <div class="views">
+    <section class="panel">
+      <h2>__YEAR__ 年 Sentinel-2 真彩色 · 800 m 见方 · 黄框 = 本点 10 m 像元</h2>
+      <div class="imgs">
+        <figure><div class="chip"><img id="cw" alt="冬季影像"></div><figcaption>1–2 月（看是否常绿）</figcaption></figure>
+        <figure><div class="chip"><img id="cs" alt="夏季影像"></div><figcaption>6–8 月</figcaption></figure>
+      </div>
+    </section>
+    <section class="panel"><h2 id="t2"></h2><div class="chartbox"><canvas id="c2"></canvas></div></section>
+    <section class="panel"><h2 id="t1"></h2><div class="chartbox"><canvas id="c1"></canvas></div></section>
+  </div>
+</main>
+
+<script>
+const KIT = __KIT__;
+const TS = __TS__;
+const CHIPS = __CHIPS__;
+const LABELS = __LABELS__;
+const YEAR = TS.year;
+const HOTKEY = {t:"tea",e:"evergreen_forest",b:"bamboo",d:"deciduous_forest",o:"orchard",c:"cropland",s:"shrub_grass",u:"built",w:"water",a:"ancient_tea",h:"shaded_tea",x:"other"};
+const KEYOF = Object.fromEntries(Object.entries(HOTKEY).map(([k,v])=>[v,k]));
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const median = a => { const s=[...a].sort((x,y)=>x-y), m=s.length>>1; return s.length?(s.length%2?s[m]:(s[m-1]+s[m])/2):null; };
+function smooth(obs, step=16){ const out=[]; for(let d=1; d<=366; d+=step){ const v=obs.filter(o=>o[0]>=d-step&&o[0]<d+step).map(o=>o[1]); if(v.length) out.push({x:d,y:median(v)}); } return out; }
+
+// ---------- 状态 ----------
+let db=null, user=null, me=null, MINE={}, OTHERS={}, canWrite=false, joined=false;
+const subs = {};
+let view = KIT, cur = 0, curConf = "3";
+let lastImg = ""; try { lastImg = localStorage.getItem("tea-probe-lastimg") || ""; } catch {}
+
+// ---------- 图表 ----------
+const MONTH_DOY = Array.from({length:12},(_,m)=>Math.round((new Date(YEAR,m,1)-new Date(YEAR,0,1))/864e5)+1);
+function mkChart(el, ymin, ymax, ylab){
+  if(!window.Chart) return null;
+  return new Chart(el,{type:"scatter",data:{datasets:[]},options:{animation:false,maintainAspectRatio:false,
+    scales:{x:{min:1,max:366,ticks:{callback:v=>{const m=MONTH_DOY.indexOf(v);return m>=0?(m+1)+"月":""},maxRotation:0,autoSkip:false,color:css("--muted")},
+      afterBuildTicks:a=>{a.ticks=MONTH_DOY.map(v=>({value:v}))},grid:{color:css("--line")}},
+      y:{min:ymin,max:ymax,title:{display:true,text:ylab,color:css("--muted")},ticks:{color:css("--muted")},grid:{color:css("--line")}}},
+    plugins:{legend:{labels:{boxWidth:10,color:css("--fg")}}}}});
+}
+const teaIds = KIT.filter(k=>k.label==="tea").map(k=>k.point_id);
+const REF2 = smooth(teaIds.flatMap(id=>(TS.points[id]||{}).s2||[]));
+const REF1 = smooth(teaIds.flatMap(id=>(TS.points[id]||{}).s1||[]));
+const c2 = mkChart($("c2"), -0.1, 1, "NDVI"), c1 = mkChart($("c1"), -28, -8, "VH (dB)");
+
+// ---------- 标注按钮 ----------
+LABELS.forEach(l=>{const b=document.createElement("button");b.dataset.l=l;b.innerHTML=`${l}<span class="k">${KEYOF[l]||""}</span>`;b.onclick=()=>setLabel(l);$("labs").appendChild(b)});
+["1","2","3"].forEach(c=>{const b=document.createElement("button");b.dataset.c=c;b.textContent=c;b.onclick=()=>setConf(c);$("conf").appendChild(b)});
+
+// ---------- 列表 ----------
+function othersFor(pid){ return Object.entries(OTHERS).filter(([u,m])=>m[pid]?.label).map(([u,m])=>[u,m[pid]]); }
+function isSplit(pid){ const s=new Set(othersFor(pid).map(([,r])=>r.label)); if(MINE[pid]?.label) s.add(MINE[pid].label); return s.size>1; }
+function renderList(){
+  const s=$("q").value.trim().toLowerCase(), f=$("f").value;
+  view = KIT.filter(k=>{
+    if(s && !k.point_id.toLowerCase().includes(s)) return false;
+    const mine=!!MINE[k.point_id]?.label;
+    if(f==="todo") return !mine; if(f==="done") return mine; if(f==="split") return isSplit(k.point_id);
+    return true;
+  });
+  const curId = KIT[0] && document.querySelector("#list li.on")?.dataset.id;
+  $("list").innerHTML = view.map((k,i)=>{const m=MINE[k.point_id]; const n=othersFor(k.point_id).length+(m?.label?1:0);
+    return `<li tabindex="-1" data-i="${i}" data-id="${k.point_id}"><span class="id mono">${k.point_id}</span>`+
+      `<span class="lab${m?.label?" mine":""}">${m?.label||k.label}</span>`+
+      `<span class="n${isSplit(k.point_id)?" split":""}" title="已标注人数">${n}</span></li>`}).join("");
+  const keep = view.findIndex(k=>k.point_id===curId);
+  show(keep>=0?keep:Math.min(cur,view.length-1), false);
+  updateProg();
+}
+function updateProg(){
+  const n=KIT.filter(k=>MINE[k.point_id]?.label).length;
+  $("prog").textContent = me ? `我已标注 ${n} / ${KIT.length}` : `共 ${KIT.length} 个点`;
+  $("progbar").style.width = (me? 100*n/KIT.length : 0) + "%";
+}
+$("list").onclick = e=>{const li=e.target.closest("li"); if(li) show(+li.dataset.i)};
+$("q").oninput = renderList; $("f").onchange = renderList;
+
+// ---------- 单点 ----------
+function show(i, scroll=true){
+  if(!view.length){ $("pid").textContent="没有符合筛选的点"; return; }
+  cur=Math.max(0,i); const k=view[cur];
+  [...$("list").children].forEach((li,j)=>li.classList.toggle("on",j===cur));
+  if(scroll) $("list").children[cur]?.scrollIntoView({block:"nearest"});
+  $("pid").textContent=k.point_id;
+  $("info").textContent=`预填：${k.label} · ${k.lat.toFixed(5)}, ${k.lon.toFixed(5)}`;
+  $("desc").textContent=k.desc||"";
+  $("ge").href=`https://earth.google.com/web/@${k.lat},${k.lon},150a,500d,35y,0h,0t,0r`;
+  const ch=CHIPS[k.point_id]||{}; $("cw").src=ch.w||""; $("cs").src=ch.s||"";
+  paint(); drawCharts(k);
+}
+function drawCharts(k){
+  const p=TS.points[k.point_id]||{s2:[],s1:[]}, acc=css("--accent"), ref=css("--ref"), mut=css("--muted");
+  $("t2").textContent=`Sentinel-2 NDVI ${YEAR}（去云后 ${p.s2.length} 次观测）`;
+  $("t1").textContent=`Sentinel-1 VH ${YEAR}（${p.s1.length} 次观测）`;
+  if(!c2) return;
+  c2.data.datasets=[
+    {label:"旧标签茶园中位数（参考）",data:REF2,showLine:true,pointRadius:0,borderColor:ref,borderWidth:6},
+    {label:"本点观测",data:p.s2.map(o=>({x:o[0],y:o[1]})),pointRadius:3,backgroundColor:mut},
+    {label:"16 天中位数",data:smooth(p.s2),showLine:true,pointRadius:0,borderColor:acc,borderWidth:2}];
+  c2.update();
+  c1.data.datasets=[
+    {label:"旧标签茶园中位数（参考）",data:REF1,showLine:true,pointRadius:0,borderColor:ref,borderWidth:6},
+    {label:"本点观测",data:p.s1.map(o=>({x:o[0],y:o[1]})),pointRadius:2.5,backgroundColor:mut},
+    {label:"16 天中位数",data:smooth(p.s1),showLine:true,pointRadius:0,borderColor:acc,borderWidth:2}];
+  c1.update();
+}
+async function paint(){
+  const k=view[cur]; if(!k) return; const r=MINE[k.point_id]||{};
+  [...$("labs").children].forEach(b=>b.classList.toggle("on",b.dataset.l===r.label));
+  [...$("conf").children].forEach(b=>b.classList.toggle("on",b.dataset.c===(r.conf||curConf)));
+  if(document.activeElement!==$("img")) $("img").value=r.img||lastImg;
+  if(document.activeElement!==$("note")) $("note").value=r.note||"";
+  if(!$("status").classList.contains("err")) $("status").textContent = r.label?`我的标注：${r.label} · 置信度 ${r.conf} · ${r.img||"缺影像日期"}`:(me?"我还没标这个点":"");
+  const box=$("others"); box.hidden=!$("showothers").checked;
+  if(!box.hidden){
+    const o=othersFor(k.point_id);
+    if(!o.length){ box.textContent="其他人还没有标这个点"; return; }
+    const ps = user ? await user.profiles(o.map(([u])=>u)) : {};
+    box.replaceChildren(...o.map(([u,rr])=>{const d=document.createElement("div");
+      d.textContent=`${ps[u]?.name||"另一位标注者"}：${rr.label} · 置信度 ${rr.conf} · ${rr.img||""}`;return d;}));
+  }
+}
+$("showothers").onchange = paint;
+
+// ---------- 写入（每个点一次只写一笔） ----------
+const queue = {};
+function writeMine(pid, rec){
+  if(!db||!me||!canWrite){ say("当前没有写入权限：请让项目负责人把你加为编辑者（Editor）。", true); return; }
+  const ref = db.doc(`labels/${me}/points/${pid}`);
+  const run = async ()=>{
+    try{
+      if(!joined){ joined=true; await db.doc(`labels/${me}`).set({joinedAt:new Date().toISOString()}); }
+      if(rec) await ref.set(rec); else await ref.delete();
+      say("");
+    }catch(e){
+      if(e?.code==="invalid_argument"){ canWrite=false; say("保存被拒绝：你在这个页面上只有查看权限。", true); }
+      else if(e?.code==="quota_exceeded") say("数据库已满，无法保存。请告诉项目负责人。", true);
+      else say("保存失败，请稍后再标这个点。（"+(e?.code||"unknown")+"）", true);
+    }
+  };
+  queue[pid] = (queue[pid]||Promise.resolve()).then(run);
+}
+function say(t, err=false){ const s=$("status"); s.textContent=t; s.classList.toggle("err",!!err); if(!t) paint(); }
+function curRec(){ const k=view[cur]; return k && {pid:k.point_id, r:{...(MINE[k.point_id]||{})}}; }
+function commit(pid, r){
+  if(!db||!me||!canWrite){ say(me?"你在这个页面上只有查看权限，标注不会保存。":"需要登录 claude.ai 并被加为编辑者才能标注。", true); return; }
+  r.t=new Date().toISOString(); MINE[pid]=r; writeMine(pid, r); renderRow(pid); paint(); updateProg(); }
+function setLabel(l){ const c=curRec(); if(!c) return; c.r.label=l; c.r.conf=c.r.conf||curConf; c.r.img=c.r.img||$("img").value.trim()||lastImg; commit(c.pid,c.r); }
+function setConf(v){ curConf=v; const c=curRec(); if(c && c.r.label){ c.r.conf=v; commit(c.pid,c.r); } else paint(); }
+$("img").onchange=()=>{ lastImg=$("img").value.trim(); try{localStorage.setItem("tea-probe-lastimg",lastImg)}catch{}; const c=curRec(); if(c&&c.r.label){c.r.img=lastImg;commit(c.pid,c.r);} };
+$("note").onchange=()=>{ const c=curRec(); if(c&&c.r.label){c.r.note=$("note").value;commit(c.pid,c.r);} };
+$("clear").onclick=()=>{ const c=curRec(); if(!c||!MINE[c.pid]) return; delete MINE[c.pid]; writeMine(c.pid,null); renderRow(c.pid); paint(); updateProg(); };
+function renderRow(pid){
+  const li=[...$("list").children].find(x=>x.dataset.id===pid); if(!li) return;
+  const k=KIT.find(x=>x.point_id===pid), m=MINE[pid], lab=li.querySelector(".lab"), n=li.querySelector(".n");
+  lab.textContent=m?.label||k.label; lab.classList.toggle("mine",!!m?.label);
+  n.textContent=othersFor(pid).length+(m?.label?1:0); n.classList.toggle("split",isSplit(pid));
+}
+
+document.addEventListener("keydown",e=>{
+  if(["INPUT","SELECT","TEXTAREA"].includes(e.target.tagName)||e.metaKey||e.ctrlKey||e.altKey) return;
+  const k=e.key.toLowerCase();
+  if(HOTKEY[k]){ setLabel(HOTKEY[k]); e.preventDefault(); }
+  else if(["1","2","3"].includes(k)){ setConf(k); e.preventDefault(); }
+  else if(k==="enter"||k==="arrowdown"){ show(Math.min(cur+1,view.length-1)); e.preventDefault(); }
+  else if(k==="arrowup"){ show(Math.max(cur-1,0)); e.preventDefault(); }
+});
+
+// ---------- 导出 ----------
+const esc=v=>{v=(v??"").toString();return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+async function exportCsv(all){
+  const dl = await window.claude?.use?.("downloads"); if(!dl){ say("这个视图不支持下载。可以请 Claude 直接读取数据库。", true); return; }
+  const head=["point_id","lon","lat","label","confidence","imagery_date","note","prefill","source","labeled_at","annotator_id","annotator_name"];
+  const sets = all ? [[me,MINE],...Object.entries(OTHERS)] : [[me,MINE]];
+  const ps = user ? await user.profiles(sets.map(([u])=>u)) : {};
+  const rows=[]; for(const [u,m] of sets) for(const k of KIT){ const r=m[k.point_id]; if(!r?.label) continue;
+    rows.push([k.point_id,k.lon,k.lat,r.label,r.conf,r.img,r.note,k.label,k.source,r.t,u,ps[u]?.name||""].map(esc).join(",")); }
+  try{ await dl.save({filename:`__KITNAME___${all?"all":"mine"}_labels.csv`, data:"﻿"+head.join(",")+"\n"+rows.join("\n")+"\n"}); say(`已导出 ${rows.length} 条`); }
+  catch(e){ if(e?.code!=="cancelled") say("导出没有完成（"+(e?.code||"unknown")+"）", true); }
+}
+$("exp").onclick=()=>exportCsv(false); $("expall").onclick=()=>exportCsv(true);
+
+// ---------- 连接数据库 ----------
+function subscribeOthers(uid){
+  if(subs[uid]||uid===me||Object.keys(subs).length>=60) return;
+  subs[uid]=db.collection(`labels/${uid}/points`).onSnapshot(s=>{
+    const m={}; s.docs.forEach(d=>m[d.id]=d.data()); OTHERS[uid]=m; renderList();
+  },()=>{});
+}
+async function connect(){
+  const timer=setTimeout(()=>{$("who").textContent="标注数据库暂时连不上：可以浏览，但标注不会保存。"},10000);
+  [db,user]=await Promise.all([window.claude?.use?.("db")??null, window.claude?.use?.("user")??null]);
+  if(!db){ clearTimeout(timer); $("who").textContent="未连接标注数据库（需要登录 claude.ai 打开）：只能浏览。"; return; }
+  me = user ? await user.id() : null;
+  const w = user ? await user.can("data.write") : null;
+  canWrite = !!me && w!==false;
+  const prof = user ? await user.me() : null;
+  $("who").textContent = !me ? "未登录：只能浏览。" : canWrite ? `标注者：${prof?.name||"你"}` : `${prof?.name||"你"}：只有查看权限`;
+  $("exp").hidden = !me;
+  $("expall").hidden = !(user && await user.canEdit());
+  if(me){
+    db.collection(`labels/${me}/points`).onSnapshot(s=>{
+      clearTimeout(timer);
+      const m={}; s.docs.forEach(d=>m[d.id]=d.data()); MINE=m; if(s.docs.length) joined=true; renderList();
+    },e=>{clearTimeout(timer); say("读取我的标注失败（"+e.code+"）", true)});
+  } else clearTimeout(timer);
+  db.collection("labels").onSnapshot(s=>{ s.docs.forEach(d=>subscribeOthers(d.id)); },()=>{});
+}
+renderList();
+connect();
+</script>
