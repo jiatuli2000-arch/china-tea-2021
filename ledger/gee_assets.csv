@@ -1,1 +1,8 @@
 asset_id,year,stage,description,created_by_script,date_created,notes
+projects/project-c7b654cb-9d08-48ed-bcf/assets/01_boundary/china_provinces/china_AMD1_Areas,,legacy-input,省级边界 34 要素,legacy,2026-08-21,复用；出图需核对标准地图
+projects/project-c7b654cb-9d08-48ed-bcf/assets/01_boundary/china_provinces/china_AMD2_Areas,,legacy-input,市级边界 375 要素,legacy,2026-08-21,复用
+projects/project-c7b654cb-9d08-48ed-bcf/assets/01_boundary/china_provinces/china_AMD3_Areas,,legacy-input,县级边界 2891 要素,legacy,2026-08-21,复用
+projects/project-c7b654cb-9d08-48ed-bcf/assets/01_boundary/study_areas/Huangshan_Boundary,,legacy-input,黄山市边界（江南代表区）,legacy,2026-08-19,复用
+projects/project-c7b654cb-9d08-48ed-bcf/assets/01_boundary/study_areas/Puer_Boundary,,legacy-input,普洱市边界（西南代表区）,legacy,2026-08-19,复用
+projects/project-c7b654cb-9d08-48ed-bcf/assets/02_samples/tea_ground_samples/china_tea_sample,,legacy-input,全国茶园站点 856 点（云南 414），仅 station_label 字段,legacy,2026-08-19,来源待确认；暂不确定用作探针还是外部检验
+projects/project-c7b654cb-9d08-48ed-bcf/assets/03_projects/tea_mapping/Teamap_2022_China_papper,2022,external-reference,已发表 2022 全国茶园图（title=Teamap_2022_China）,external,2026-08-19,S5 交叉检验；引用出处待补；一旦参与样本生成即不能再用于验证
