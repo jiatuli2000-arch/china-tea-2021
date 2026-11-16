@@ -4,7 +4,8 @@
 
 - 输入：`docs/00` 标注协议、`docs/02` 代表区
 - 输出：`data/raw/probes/<zone>.csv`（字段见标注协议）
-- 验收：`check.py`——字段完整、坐标在代表区内、每茶区每主要类别 ≥ 50 个置信度 ≥ 2 的点、`point_id` 唯一
+- 流程：打点工作台 → Google Earth 复核 → 验收（`docs/04`）
+- 验收：`check.py`——每张表完成 Google Earth 复核、字段完整、坐标在代表区内、每茶区每主要类别 ≥ 50 个置信度 ≥ 2 的点、`point_id` 唯一
 
 ## 操作步骤
 
@@ -19,4 +20,14 @@
 
 | 代表区 | 打点包 | 状态 |
 |---|---|---|
-| 福建安溪（华南） | `anxi_kit_v1`（`make_kit.py`，盲标）：332 点，按规则找的候选为茶 150、常绿林 90、落叶林 22（安溪落叶林少，60 个只找到 22 个）、耕地 70；候选类型不显示，另存 `anxi_kit_v1_candidates.csv` | 待标注 |
+| 福建安溪（华南） | `anxi_kit_v1`（`make_kit.py`，盲标）：332 点，按规则找的候选为茶 150、常绿林 90、落叶林 22（安溪落叶林少，60 个只找到 22 个）、耕地 70；候选类型不显示，另存 `anxi_kit_v1_candidates.csv` | ✅ 工作台已入库 `huanan__anxi.csv`（2026-11-16，332 点）：非茶常绿林 206、茶树 85、耕地 39、落叶林 1、混交林 1；190 点移动过（中位 209 m）。⏳ 待 Google Earth 复核 |
+
+## Google Earth 复核进度
+
+| 探针表 | 复核包 | 状态 |
+|---|---|---|
+| `jiangnan__huangshan`（386） | `ge_jiangnan__huangshan_viewer.html` + `.kml` | ⏳ 待复核 |
+| `jiangnan__huangshan_r2`（115） | `ge_jiangnan__huangshan_r2_viewer.html` + `.kml` | ⏳ 待复核 |
+| `huanan__anxi`（332） | `ge_huanan__anxi_viewer.html` + `.kml` | ⏳ 待复核 |
+
+**江南的点数要等复核完才算数**（上面"四个主要类别都达到 50 个"是工作台阶段的数字）。

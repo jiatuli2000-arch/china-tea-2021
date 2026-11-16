@@ -77,11 +77,11 @@ kbd{border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:11px}
       <div class="muted" id="info"></div>
       <div class="muted" id="desc"></div>
       <div style="margin-top:6px"><a id="ge" target="_blank" rel="noopener">在 Google Earth 网页版打开 ↗</a></div>
-      <div class="row"><button id="mv" title="点了之后在地图上点一下新位置；Esc 取消">移动到纯净像元 <kbd>G</kbd></button><button id="mvr" hidden>恢复原位</button></div>
+      <div class="row"><button id="mv" title="点了之后在地图上点一下新位置；Esc 取消">移动到纯净像元 <kbd>G</kbd></button><button id="mvr" hidden>恢复原位</button><button id="ok" hidden>预填正确 <kbd>Y</kbd></button></div>
       <div class="warn" id="mvinfo"></div>
     </div>
     <div>
-      <div class="muted">快捷键：字母选标签，<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 置信度，<kbd>G</kbd> 移动点，<kbd>Enter</kbd> 下一个，<kbd>↑</kbd><kbd>↓</kbd> 切换</div>
+      <div class="muted">快捷键：字母选标签，<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 置信度，<kbd>Y</kbd> 预填正确，<kbd>G</kbd> 移动点，<kbd>Enter</kbd> 下一个，<kbd>↑</kbd><kbd>↓</kbd> 切换</div>
       <div class="labels" id="conf"><span class="muted" style="align-self:center">置信度</span></div>
       <div class="labels common" id="labs"></div>
       <details id="more"><summary>更多类别</summary><div class="labels" id="labs2"></div></details>
@@ -208,7 +208,8 @@ function updateProg(){
 document.addEventListener("keydown", e=>{
   if(e.target.tagName==="INPUT" || e.metaKey || e.ctrlKey) return;
   const k=e.key.toLowerCase();
-  if(HOTKEY[k]){ setLabel(HOTKEY[k]); e.preventDefault(); }
+  if(k==="y"){ confirmPrefill(); e.preventDefault(); }
+  else if(HOTKEY[k]){ setLabel(HOTKEY[k]); e.preventDefault(); }
   else if(["1","2","3"].includes(k)){ setConf(k); e.preventDefault(); }
   else if(k==="g"){ setMove(!moveMode); e.preventDefault(); }
   else if(k==="escape"){ setMove(false); }
@@ -218,9 +219,9 @@ document.addEventListener("keydown", e=>{
 // ---------- 导出 / 导入 ----------
 const esc = v => { v = (v ?? "").toString(); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
 document.getElementById("exp").onclick = ()=>{
-  const head=["point_id","lon","lat","label","confidence","imagery_date","note","prefill","source","labeled_at","orig_lon","orig_lat","moved_m"];
+  const head=["point_id","lon","lat","label","confidence","imagery_date","note","prefill","source","labeled_at","orig_lon","orig_lat","moved_m","verdict"];
   const rows=KIT.filter(k=>ANN[k.point_id]?.label).map(k=>{const r=ANN[k.point_id], [la,lo]=pos(k), m=movedM(k);
-    return [k.point_id,lo,la,r.label,r.conf||"",r.img||"",r.note||"",k.label,k.source,r.t||"",k.lon,k.lat,m?m.toFixed(1):""].map(esc).join(",");});
+    return [k.point_id,lo,la,r.label,r.conf||"",r.img||"",r.note||"",k.label,k.source,r.t||"",k.lon,k.lat,m?m.toFixed(1):"",NAME[k.label]?(r.label===k.label?"ok":"changed"):""].map(esc).join(",");});
   const blob=new Blob(["﻿"+head.join(",")+"\n"+rows.join("\n")+"\n"],{type:"text/csv"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
   a.download=`${document.title.split(" ")[0]}_labels_${new Date().toISOString().slice(0,16).replace(/[:T]/g,"")}.csv`; a.click();
@@ -246,9 +247,10 @@ function show(i){
   [...list.children].forEach((li,j)=>li.classList.toggle("on",j===i));
   list.children[i]?.scrollIntoView({block:"nearest"});
   document.getElementById("pid").textContent = k.point_id;
-  document.getElementById("info").textContent = `预填：${k.label} · 来源：${k.source} · ${k.lat.toFixed(5)}, ${k.lon.toFixed(5)}`;
+  document.getElementById("info").textContent = `预填：${NAME[k.label]||k.label} · 来源：${k.source} · ${k.lat.toFixed(5)}, ${k.lon.toFixed(5)}`;
   document.getElementById("desc").textContent = k.desc||"";
   setMove(false); paint();
+  document.getElementById("ok").hidden = !NAME[k.label];
   map.setView(pos(k),17);
   drawPoint(k);
 
@@ -305,6 +307,9 @@ function drawPoint(k){
       + (m>MOVE_WARN_M ? ` 移动超过 ${MOVE_WARN_M} m，已经不算同一个点，建议只在相邻几个像元内挪。` : "")
     : "";
 }
+// 复核用：预填是合法标签时，Y = 认可预填
+function confirmPrefill(){ const k=view[cur]; if(k && NAME[k.label]) setLabel(k.label); }
+document.getElementById("ok").onclick = confirmPrefill;
 renderList();
 </script>
 </body>

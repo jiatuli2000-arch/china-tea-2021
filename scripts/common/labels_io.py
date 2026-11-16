@@ -38,3 +38,31 @@ def problems(df: pd.DataFrame) -> pd.Series:
         return ",".join(p)
 
     return df.apply(one, axis=1)
+
+
+def load_probes() -> pd.DataFrame:
+    """所有探针点，复核结果覆盖工作台标签。
+
+    返回探针表各列 + ge_reviewed（bool）、verdict、label_workbench。
+    下游（S2/S3）只应使用 ge_reviewed 为 True 的点。
+    """
+    d = ROOT / "data/raw/probes"
+    tabs = []
+    for f in sorted(d.glob("*__*.csv")):
+        if f.stem.endswith("_problems"):
+            continue
+        t = pd.read_csv(f, dtype={"moved_m": str, "note": str}, keep_default_na=False)
+        t["table"] = f.stem
+        t["label_workbench"] = t.label
+        t["ge_reviewed"], t["verdict"] = False, ""
+        rv = d / "review" / f"{f.stem}__ge.csv"
+        if rv.exists():
+            r = pd.read_csv(rv, dtype={"moved_m": str, "note": str}, keep_default_na=False).set_index("point_id")
+            hit = t.point_id.isin(r.index)
+            for c in ("lon", "lat", "label", "confidence", "imagery_source", "imagery_date", "verdict"):
+                t.loc[hit, c] = t.loc[hit, "point_id"].map(r[c])
+            t.loc[hit, "ge_reviewed"] = True
+        tabs.append(t)
+    df = pd.concat(tabs, ignore_index=True)
+    df["confidence"] = df.confidence.astype(int)
+    return df

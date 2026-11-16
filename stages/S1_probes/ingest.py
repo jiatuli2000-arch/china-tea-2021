@@ -2,10 +2,10 @@
 
 用法：
   python stages/S1_probes/ingest.py 导出.csv --zone jiangnan --area huangshan --province 安徽 --annotator <你> \
-      [--relabel other=mixed] [--review 复核导出.csv]
+      [--relabel other=mixed]
 
 移动过的点（混合像元挪到附近纯净像元）：lon/lat 为新位置，orig_lon/orig_lat/moved_m 记录原位置。
-先用 review_moved.py 按新位置重新提取曲线复核，复核网页导出的 CSV 用 --review 传入，覆盖这些点的标签。
+入库后必须走 Google Earth 复核（make_ge_review.py），复核页按新位置重新提取曲线。
 
 判读依据：
 - 网页里填了影像日期的点 → imagery_source = "Google Earth 历史影像"，imagery_date = 所填日期
@@ -40,7 +40,6 @@ def main() -> None:
     ap.add_argument("--annotator", required=True)
     ap.add_argument("--relabel", action="append", default=[], metavar="旧=新",
                     help="入库时改标签代码，如 other=mixed（写进 note 留痕）")
-    ap.add_argument("--review", type=Path, help="review_moved.py 复核网页导出的 CSV")
     a = ap.parse_args()
 
     out = ROOT / f"data/raw/probes/{a.zone}__{a.area}.csv"
@@ -58,18 +57,8 @@ def main() -> None:
     if "moved_m" not in df:
         df["moved_m"] = ""
     moved = df.moved_m.str.strip() != ""
-    if a.review:
-        rv = parse_csv(a.review).set_index("point_id")
-        extra = set(rv.index) - set(df.point_id[moved])
-        assert not extra, f"复核表里有未移动或不存在的点：{sorted(extra)[:5]}"
-        hit = df.point_id.isin(rv.index)
-        for c in ("label", "confidence", "imagery_date", "labeled_at"):
-            df.loc[hit, c] = df.loc[hit, "point_id"].map(rv[c])
-        df.loc[hit, "note"] = (df.loc[hit, "point_id"].map(rv["note"]) + " [移动后按新位置时序复核]").str.strip()
-        print(f"复核覆盖 {int(hit.sum())} 点")
-    unreviewed = moved & ~df.point_id.isin(rv.index if a.review else [])
-    if unreviewed.any():
-        print(f"注意：{int(unreviewed.sum())} 个移动点没有按新位置复核")
+    if moved.any():
+        print(f"其中 {int(moved.sum())} 个点移动过，Google Earth 复核时会按新位置看曲线")
 
     blank = df.imagery_date.str.strip() == ""
     df["imagery_source"] = SRC_GE
