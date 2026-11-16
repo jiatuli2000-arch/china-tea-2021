@@ -43,7 +43,7 @@ def problems(df: pd.DataFrame) -> pd.Series:
 def load_probes() -> pd.DataFrame:
     """所有探针点，复核结果覆盖工作台标签。
 
-    返回探针表各列 + ge_reviewed（bool）、verdict、label_workbench。
+    返回探针表各列 + ge_reviewed（bool）、verdict、label_workbench；复核时删除（removed）的点不返回。
     下游（S2/S3）只应使用 ge_reviewed 为 True 的点。
     """
     d = ROOT / "data/raw/probes"
@@ -62,7 +62,7 @@ def load_probes() -> pd.DataFrame:
             for c in ("lon", "lat", "label", "confidence", "imagery_source", "imagery_date", "verdict"):
                 t.loc[hit, c] = t.loc[hit, "point_id"].map(r[c])
             t.loc[hit, "ge_reviewed"] = True
-        tabs.append(t)
+        tabs.append(t[t.verdict != "removed"])  # 复核时删除的点不要
     df = pd.concat(tabs, ignore_index=True)
     df["confidence"] = df.confidence.astype(int)
     return df
