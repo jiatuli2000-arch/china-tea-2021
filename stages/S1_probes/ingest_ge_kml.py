@@ -7,8 +7,8 @@
   - 删除点 = 这个点不要了（verdict = removed，下游不用）
 几种方式给出的类别互相矛盾时报错。没动的点 verdict = ok。
 
-用法：python stages/S1_probes/ingest_ge_kml.py 导出.kml --table huanan__anxi --reviewer ZGF [--fix 点号=类别 ...]
-  --fix：复核后再次确认时的更正（写进 note）。
+用法：python stages/S1_probes/ingest_ge_kml.py 导出.kml --table huanan__anxi --reviewer ZGF [--fix 点号=类别 ...] [--drop 点号 ...]
+  --fix / --drop：复核后再次确认时的更正或删除（写进 note）。
 输出：data/raw/probes/review/<表>__ge.csv（不覆盖），格式同 ingest_ge_review.py。
 """
 from __future__ import annotations
@@ -105,6 +105,8 @@ def main() -> None:
     ap.add_argument("--table", required=True)
     ap.add_argument("--reviewer", required=True)
     ap.add_argument("--fix", action="append", default=[], metavar="点号=类别")
+    ap.add_argument("--drop", action="append", default=[], metavar="点号",
+                    help="复核后再确认要删除的点（verdict = removed，写进 note）")
     ap.add_argument("--date", default=pd.Timestamp.now().strftime("%Y-%m-%d"), help="复核日期")
     a = ap.parse_args()
     out = ROOT / f"data/raw/probes/review/{a.table}__ge.csv"
@@ -136,9 +138,16 @@ def main() -> None:
         df.loc[hit, "note"] = f"复核后再确认：{df.loc[hit, 'new'].iat[0] or '已删除'}→{lab}"
         df.loc[hit, ["new", "lon", "lat"]] = [lab, df.loc[hit, "lon_b"].iat[0], df.loc[hit, "lat_b"].iat[0]]
         removed &= ~hit
+    for pid in a.drop:
+        assert pid in set(df.point_id), pid
+        hit = df.point_id == pid
+        df.loc[hit, "note"] = "复核后再确认删除（标签与 2021 年 NDVI 矛盾）"
+        df.loc[hit, ["lon", "lat"]] = [np.nan, np.nan]
+        removed |= hit
     df["verdict"] = "ok"
     df.loc[df.new != df.label, "verdict"] = "changed"
-    df.loc[removed, ["verdict", "new"]] = ["removed", df.loc[removed, "label"]]
+    df.loc[removed, "new"] = df.loc[removed, "label"]
+    df.loc[removed, "verdict"] = "removed"
     mv = ((df.lon - df.lon_b).abs() + (df.lat - df.lat_b).abs()) > 1e-6
     assert not mv[~removed].any(), f"有点被拖动过，KML 路线不处理移动：{df.point_id[mv].tolist()[:5]}"
     df["lon"], df["lat"] = df.lon_b, df.lat_b

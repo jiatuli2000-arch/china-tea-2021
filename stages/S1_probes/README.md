@@ -24,10 +24,27 @@
 
 ## Google Earth 复核进度
 
-| 探针表 | 复核包 | 状态 |
-|---|---|---|
-| `jiangnan__huangshan`（386） | `ge_jiangnan__huangshan_viewer.html` + `.kml` | ⏳ 待复核 |
-| `jiangnan__huangshan_r2`（115） | `ge_jiangnan__huangshan_r2_viewer.html` + `.kml` | ⏳ 待复核 |
-| `huanan__anxi`（332） | `ge_huanan__anxi_viewer.html` + `.kml` | ⏳ 待复核 |
+| 探针表 | 复核结果（2026-11-16） |
+|---|---|
+| `jiangnan__huangshan`（386） | ✅ 改标签 14，删除 8（Google Earth 里删 1；与 2021 年 NDVI 矛盾删 7） → 378 点 |
+| `jiangnan__huangshan_r2`（115） | ✅ 改标签 3，删除 1（NDVI 矛盾） → 114 点 |
+| `huanan__anxi`（332） | ✅ 改标签 2，删除 5（NDVI 矛盾） → 327 点 |
 
-**江南的点数要等复核完才算数**（上面"四个主要类别都达到 50 个"是工作台阶段的数字）。
+复核表在 `data/raw/probes/review/`；原 KML 存档在 `data/raw/probes/exports/ge_*_reviewed_20261116.kml`。
+
+**验收（`check.py`，2026-11-16）**：复核过、置信度 ≥ 2 的点
+
+| 类别 | 江北 | 江南 | 华南 | 西南 |
+|---|---|---|---|---|
+| 茶树 | 0 | 130 | 82 | 0 |
+| 非茶常绿林 | 0 | 164 | 204 | 0 |
+| 落叶林 | 0 | **49** | 豁免 | 0 |
+| 耕地 | 0 | 64 | **38** | 0 |
+
+## 补点与新茶区（2026-11-16 生成）
+
+| 打点包 | 目的 | 状态 |
+|---|---|---|
+| `huangshan_kit_r3`（25） | 江南落叶林补到 ≥ 50 | 待标注 |
+| `anxi_kit_r2`（30） | 华南耕地补到 ≥ 50 | 待标注 |
+| `xinyang_kit_v1`（信阳浉河区，390） | 江北茶区：候选茶 150、常绿林 90、落叶林 80、耕地 70（盲标） | 待标注 |

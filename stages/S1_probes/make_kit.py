@@ -66,7 +66,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--kit", required=True)
     ap.add_argument("--prefix", required=True)
-    ap.add_argument("--county", required=True, help="县级名称，如 安溪县")
+    g = ap.add_mutually_exclusive_group(required=True)
+    g.add_argument("--county", action="append", help="县级名称，如 安溪县；可重复给多个县")
+    g.add_argument("--asset", help="研究区边界 FeatureCollection 资产（如黄山市边界）")
     ap.add_argument("--n", action="append", default=[], metavar="类别=数量")
     ap.add_argument("--pool", type=int, default=6000)
     ap.add_argument("--exclude", action="append", default=[])
@@ -79,9 +81,12 @@ def main() -> None:
         raise SystemExit(f"已存在 {out}，不覆盖")
 
     ee.Initialize(project=os.environ.get("GEE_PROJECT", "ee-jiatuli2000"))
-    fc = ee.FeatureCollection(COUNTIES).filter(ee.Filter.eq("name", a.county))
-    assert fc.size().getInfo() == 1, f"县名 {a.county} 不唯一或不存在"
-    region = fc.geometry()
+    if a.asset:
+        region = ee.FeatureCollection(a.asset).geometry()
+    else:
+        fc = ee.FeatureCollection(COUNTIES).filter(ee.Filter.inList("name", a.county))
+        assert fc.size().getInfo() == len(a.county), f"县名 {a.county} 有的不唯一或不存在"
+        region = fc.geometry()
     esa = ee.ImageCollection("ESA/WorldCover/v200").first().select("Map").rename("esa")
     w = ndvi_col(f"{YEAR}-01-01", f"{YEAR}-03-01", region).median().rename("w")
     s = ndvi_col(f"{YEAR}-06-01", f"{YEAR}-09-01", region).median().rename("s")
@@ -99,6 +104,10 @@ def main() -> None:
         print(f"取值 {min(i + 500, a.pool)}/{a.pool}", flush=True)
 
     taken = [(r.lon, r.lat) for f in a.exclude for r in pd.read_csv(ROOT / f).itertuples()]
+    for f in a.exclude:  # 工作台里挪过的点，原位置也避开
+        t = pd.read_csv(ROOT / f)
+        if "orig_lon" in t:
+            taken += [(r.orig_lon, r.orig_lat) for r in t.dropna(subset=["orig_lon"]).itertuples()]
     count = {k: 0 for k in want}
     rows, cands = [], []
     for f in feats:
