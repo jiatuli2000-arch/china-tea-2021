@@ -270,7 +270,7 @@ function show(i){
     {label:`降轨 (${D.length})`,data:D.map(o=>({x:o[0],y:o[1]})),pointRadius:2.5,backgroundColor:"#fb8c00"},
     {label:"16 天中位数",data:smooth(p.s1),showLine:true,pointRadius:0,borderColor:acc,borderWidth:2},
   ];
-  document.getElementById("t1").textContent=`Sentinel-1 VH ${YEAR}（${p.s1.length} 次观测）`;
+  document.getElementById("t1").textContent=`Sentinel-1 VH ${YEAR}（${(TS.s1_window_px||1)>1?TS.s1_window_px+"×"+TS.s1_window_px+" 窗口降斑":"单像元，未降斑"}，${p.s1.length} 次观测）`;
   c1.update();
 }
 // ---------- 移动点：混合像元 → 附近纯净像元 ----------
