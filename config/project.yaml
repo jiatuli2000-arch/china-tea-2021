@@ -23,3 +23,6 @@ accuracy_targets:              # 详见 docs/01_精度目标与验收门槛.md
   tea_ua_min: 0.85
   tea_pa_min: 0.80
   sample_purity_min: 0.95
+
+sentinel1:
+  vh_window_px: 3              # VH 降斑：3×3 像元（10 m）窗口，线性功率求均值后再转 dB；1 = 单像元（2026-11-16 前的提取）

@@ -6,7 +6,10 @@
   {point_id: {"s2": [[doy, ndvi], ...], "s1": [[doy, vh_db, orbit], ...]}}
 
 - Sentinel-2：S2_SR_HARMONIZED 单景观测，Cloud Score+ (cs_cdf >= 0.6) 去云，不做合成。
-- Sentinel-1：S1_GRD IW 模式 VH（dB），升降轨分开记录。
+- Sentinel-1：S1_GRD IW 模式 VH（dB），升降轨分开记录。降斑：config sentinel1.vh_window_px × 同尺寸窗口，
+  在线性功率上求均值再转回 dB（单像元 VH 相邻两次观测可跳 2–3 dB，见 S2 README E03c）。
+
+用法补充：--s1-only 只重提 S1，覆盖 json 里的 "s1"；原文件第一次会备份为 <kit>_ts_px<旧窗口>.json。
 """
 from __future__ import annotations
 
@@ -20,7 +23,9 @@ import pandas as pd
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-YEAR = yaml.safe_load((ROOT / "config/project.yaml").read_text(encoding="utf-8"))["year"]
+CFG = yaml.safe_load((ROOT / "config/project.yaml").read_text(encoding="utf-8"))
+YEAR = CFG["year"]
+VH_WIN = int(CFG["sentinel1"]["vh_window_px"])
 CS_THRESH = 0.6
 BATCH = 40
 
@@ -45,7 +50,11 @@ def s1_collection(region: ee.Geometry, year: int) -> ee.ImageCollection:
           .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VH")))
 
     def prep(img):
-        return (img.select("VH").rename("v")
+        vh = img.select("VH")
+        if VH_WIN > 1:
+            lin = ee.Image(10).pow(vh.divide(10))
+            vh = lin.reduceNeighborhood(ee.Reducer.mean(), ee.Kernel.square(VH_WIN // 2, "pixels")).log10().multiply(10)
+        return (vh.rename("v")
                 .set("doy", img.date().getRelative("day", "year").add(1))
                 .set("orb", img.get("orbitProperties_pass")))
     return s1.map(prep)
@@ -61,17 +70,27 @@ def sample(coll: ee.ImageCollection, pts: ee.FeatureCollection, with_orbit: bool
     return [f["properties"] for f in flat.getInfo()["features"]]
 
 
-def main(kit: str) -> None:
+def main(kit: str, s1_only: bool = False) -> None:
     ee.Initialize(project=os.environ.get("GEE_PROJECT", "ee-jiatuli2000"))
     df = pd.read_csv(ROOT / f"data/interim/S1/{kit}.csv")
-    out: dict[str, dict] = {pid: {"s2": [], "s1": []} for pid in df.point_id}
+    dst = ROOT / f"data/interim/S1/{kit}_ts.json"
+    if s1_only:
+        old = json.loads(dst.read_text(encoding="utf-8"))
+        bak = dst.with_name(f"{kit}_ts_px{old.get('s1_window_px', 1)}.json")
+        if old.get("s1_window_px", 1) == VH_WIN:
+            sys.exit(f"{dst} 的 S1 已是 {VH_WIN}×{VH_WIN} 窗口，不用重提")
+        if not bak.exists():
+            bak.write_text(json.dumps(old, ensure_ascii=False), encoding="utf-8")
+        out = {pid: {"s2": old["points"][pid]["s2"], "s1": []} for pid in df.point_id}
+    else:
+        out = {pid: {"s2": [], "s1": []} for pid in df.point_id}
     for i in range(0, len(df), BATCH):
         part = df.iloc[i:i + BATCH]
         pts = ee.FeatureCollection([
             ee.Feature(ee.Geometry.Point([r.lon, r.lat]), {"point_id": r.point_id})
             for r in part.itertuples()])
         region = pts.geometry().bounds().buffer(100)
-        for r in sample(s2_collection(region, YEAR), pts, False):
+        for r in ([] if s1_only else sample(s2_collection(region, YEAR), pts, False)):
             out[r["point_id"]]["s2"].append([int(r["doy"]), round(r["v"], 4)])
         for r in sample(s1_collection(region, YEAR), pts, True):
             out[r["point_id"]]["s1"].append([int(r["doy"]), round(r["v"], 2), r["orb"][0]])
@@ -79,8 +98,7 @@ def main(kit: str) -> None:
     for v in out.values():
         v["s2"].sort()
         v["s1"].sort()
-    dst = ROOT / f"data/interim/S1/{kit}_ts.json"
-    dst.write_text(json.dumps({"year": YEAR, "points": out}, ensure_ascii=False), encoding="utf-8")
+    dst.write_text(json.dumps({"year": YEAR, "s1_window_px": VH_WIN, "points": out}, ensure_ascii=False), encoding="utf-8")
     n2 = [len(v["s2"]) for v in out.values()]
     n1 = [len(v["s1"]) for v in out.values()]
     print(f"→ {dst}\nS2 有效观测/点：中位数 {sorted(n2)[len(n2)//2]}，最少 {min(n2)}；"
@@ -88,4 +106,4 @@ def main(kit: str) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], "--s1-only" in sys.argv)
