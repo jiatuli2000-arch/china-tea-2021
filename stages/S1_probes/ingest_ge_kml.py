@@ -14,11 +14,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -78,6 +80,25 @@ def parse(path: Path) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def ndvi_flags(df: pd.DataFrame, table: str) -> pd.DataFrame:
+    """复核后标签与 2021 年 S2 NDVI 明显矛盾的点（只提示，不改）。
+    规则：常绿林/茶树冬季 NDVI < 0.45；落叶林冬季 > 0.6 或夏季 < 0.6；耕地全年振幅 < 0.2。"""
+    ts = json.loads((ROOT / f"data/interim/S1/ge_{table}_ts.json").read_text(encoding="utf-8"))["points"]
+
+    def feat(pid):
+        o = np.array(ts.get(pid, {}).get("s2") or [[0, np.nan]])
+        d, v = o[:, 0], o[:, 1]
+        w, sm = v[(d <= 59) | (d >= 335)], v[(d >= 152) & (d <= 243)]
+        return pd.Series({"冬季": np.median(w) if len(w) else np.nan, "夏季": np.median(sm) if len(sm) else np.nan,
+                          "振幅": np.nanpercentile(v, 90) - np.nanpercentile(v, 10)})
+    f = df[df.verdict != "removed"][["point_id", "label"]].copy()
+    f = f.join(f.point_id.apply(feat))
+    bad = ((f.label.isin(["evergreen_forest", "tea"]) & (f.冬季 < 0.45))
+           | ((f.label == "deciduous_forest") & ((f.冬季 > 0.6) | (f.夏季 < 0.6)))
+           | ((f.label == "cropland") & (f.振幅 < 0.2)))
+    return f[bad].round(2)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("kml", type=Path)
@@ -124,6 +145,10 @@ def main() -> None:
     df["label"] = df.new
     df["imagery_source"], df["imagery_date"] = "Google Earth 网页版当前影像（复核）", "ge"
     df["moved_m"], df["reviewer"], df["reviewed_at"] = "", a.reviewer, a.date
+    flags = ndvi_flags(df, a.table)
+    if len(flags):
+        print(f"与 2021 年 NDVI 明显矛盾的点 {len(flags)} 个（请在 Google Earth 再看一眼，需要就用 --fix 更正后重跑）：")
+        print(flags.to_string(index=False))
     out.parent.mkdir(parents=True, exist_ok=True)
     df[COLS].to_csv(out, index=False, encoding="utf-8-sig")
     print(f"→ {out}：{len(df)} 点")
