@@ -18,3 +18,7 @@ labels:
 unusable: [mixed, other, ancient_tea, shaded_tea]
 # S1 门槛：每茶区每类 >= 50 个置信度 >= 2 的点
 main_classes: [tea, evergreen_forest, deciduous_forest, cropland]
+# S1 门槛豁免：该茶区不要求此类别达到 50 点（docs/01；2026-11-16 用户决定）
+# 华南：安溪 8000 个随机点只筛出 22 个落叶林候选，标注后 0 个是落叶林，全县只标出 1 个
+s1_exempt:
+  huanan: [deciduous_forest]

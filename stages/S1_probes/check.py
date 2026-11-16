@@ -47,7 +47,11 @@ def main() -> int:
            .reindex(index=LAB["main_classes"], columns=ZONES).fillna(0).astype(int))
     print("复核过、置信度>=2 的探针点数（行=类别，列=茶区）：")
     print(tab.to_string())
-    short = [(c, z) for c in tab.index for z in tab.columns if tab.loc[c, z] < MIN_N]
+    exempt = LAB.get("s1_exempt", {})
+    short = [(c, z) for c in tab.index for z in tab.columns
+             if tab.loc[c, z] < MIN_N and c not in exempt.get(z, [])]
+    if exempt:
+        print("豁免：" + "；".join(f"{z} 不要求 {'、'.join(cs)}" for z, cs in exempt.items()))
     if short:
         fails.append(f"{len(short)} 个 类别×茶区 组合不足 {MIN_N}")
 
